@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path="main.yml" />
+  </Folder>
+  <Project Path="TestStandOUT.Api/TestStandOUT.Api.csproj" />
+  <Project Path="TestStandOUT.Tests/TestStandOUT.Tests.csproj" />
+</Solution>

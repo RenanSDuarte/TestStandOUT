@@ -1,0 +1,6 @@
+@TestStandOUT.Tests_HostAddress = http://localhost:5164
+
+GET {{TestStandOUT.Tests_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
