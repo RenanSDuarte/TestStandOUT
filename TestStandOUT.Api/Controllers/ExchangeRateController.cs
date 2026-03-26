@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MassTransit;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TestStandOUT.Api.Data;
+using TestStandOUT.Api.Events;
 using TestStandOUT.Api.Models;
 using TestStandOUT.Api.Services;
 
@@ -12,11 +14,13 @@ namespace TestStandOUT.Api.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IAlphaVantageService _externalApi;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public ExchangeRateController(AppDbContext context, IAlphaVantageService externalApi)
+        public ExchangeRateController(AppDbContext context, IAlphaVantageService externalApi, IPublishEndpoint publishEndpoint)
         {
             _context = context;
             _externalApi = externalApi;
+            _publishEndpoint = publishEndpoint;
         }
 
         [HttpGet("{from}/{to}")]
@@ -53,6 +57,13 @@ namespace TestStandOUT.Api.Controllers
             _context.Rates.Add(newRate);
             await _context.SaveChangesAsync();
 
+            await _publishEndpoint.Publish(new CurrencyRateCreated(
+                newRate.Id,
+                $"{newRate.BaseCurrency}/{newRate.QuoteCurrency}",
+                newRate.Bid,
+                DateTime.UtcNow
+            ));
+
             return Ok(new { Source = "External API", Data = newRate });
         }
 
@@ -75,9 +86,14 @@ namespace TestStandOUT.Api.Controllers
             _context.Rates.Add(newRate);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetRate),
-                new { baseCurrency = newRate.BaseCurrency, quoteCurrency = newRate.QuoteCurrency },
-                newRate);
+            await _publishEndpoint.Publish(new CurrencyRateCreated(
+                newRate.Id,
+                $"{newRate.BaseCurrency}/{newRate.QuoteCurrency}",
+                newRate.Bid,
+                DateTime.UtcNow
+            ));
+
+            return Ok(new { Source = "Add directly in the BD", Data = newRate });
         }
 
         [HttpPut("{id}")]

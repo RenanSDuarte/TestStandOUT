@@ -1,10 +1,26 @@
+using MassTransit;
+using MassTransit.Initializers.Variables;
 using Microsoft.EntityFrameworkCore;
+using TestStandOUT.Api.Consumers;
 using TestStandOUT.Api.Data;
 using TestStandOUT.Api.Models;
 using TestStandOUT.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<RateCreatedConsumer>();
+    //Use in Memory
+    x.UsingInMemory((context, cfg) =>
+    {
+        // Força a criação do endpoint para este consumidor específico
+        cfg.ReceiveEndpoint("currency-rate-created-queue", e =>
+        {
+            e.ConfigureConsumer<RateCreatedConsumer>(context);
+        });
+    });
 
+});
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddScoped<IAlphaVantageService, AlphaVantageService>();
@@ -20,7 +36,7 @@ builder.Services.AddHttpClient<IAlphaVantageService, AlphaVantageService>(client
     client.BaseAddress = new Uri("https://www.alphavantage.co/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
-
+builder.Services.AddMassTransitHostedService();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
