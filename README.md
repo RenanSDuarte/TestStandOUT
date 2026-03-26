@@ -58,6 +58,8 @@ Future Improvements
 TTL (Time To Live):
 Currently, if data exists in the database, it is returned as-is. A possible improvement would be adding an ExpirationDate field to automatically refresh outdated exchange rates.
 
+The application implements an Asynchronous Messaging pattern using MassTransit to demonstrate decoupled architecture.
+
 Author
 
 Developed by: Renan Duarte
